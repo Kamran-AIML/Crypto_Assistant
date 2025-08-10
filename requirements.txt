@@ -1,0 +1,14 @@
+selenium
+pandas
+numpy
+tensorflow==2.17.1
+joblib
+streamlit
+deep-translator
+requests
+beautifulsoup4
+python-dotenv
+langchain
+langgraph
+langchain-openai
+langchain-core

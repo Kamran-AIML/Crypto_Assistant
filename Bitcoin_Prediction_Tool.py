@@ -44,8 +44,8 @@ def btc_predict(human_prompt):
 
     print("... Running btc_predict--")
 
-    model_path=r'C:\Users\ADMIN\Documents\AI_Crypto\BTC_Prediction_Training\Trained_Model\btc_lstm_model_v2.h5'
-    scaler_path=r'C:\Users\ADMIN\Documents\AI_Crypto\BTC_Prediction_Training\Trained_Model\btc_scaler_v2.save'
+    model_path = 'Trained_Model/btc_lstm_model_v2.h5'
+    scaler_path = 'Trained_Model/btc_scaler_v2.save'
 
     #-----------------------------
     ## SELENIUM_CODE

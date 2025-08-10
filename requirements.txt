@@ -1,3 +1,4 @@
+streamlit-lottie
 streamlit
 selenium
 pandas

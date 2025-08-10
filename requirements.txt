@@ -1,3 +1,7 @@
+rich==14.1.0
+markdown-it-py==3.0.0
+pygments==2.19.2
+mdurl==0.1.2
 absl-py==2.3.1
 altair==5.5.0
 annotated-types==0.7.0

@@ -59,17 +59,22 @@ def btc_predict(human_prompt):
     service = Service()
     driver = webdriver.Chrome(service=service, options=options)
 
-    driver.get("https://www.coingecko.com/en/coins/bitcoin")
-    driver.implicitly_wait(20)
+    try:
+        driver.get("https://www.coingecko.com/en/coins/bitcoin")
 
-    price_text = driver.find_element(
-        By.XPATH,
-        '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 tw-text-3xl md:tw-text-4xl tw-leading-10"]'
-    ).text
-    driver.quit()
+        # Wait for the price element with a flexible XPath
+        price_elem = WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((
+                By.XPATH,
+                "//span[contains(@class, 'tw-text-3xl') and contains(@class, 'tw-font-bold')]"
+            ))
+        )
 
-    # Extract numeric price
-    todays_price = float(price_text.split('$')[1].replace(',', ''))
+        price_text = price_elem.text
+        todays_price = float(price_text.replace('$', '').replace(',', ''))
+
+    finally:
+        driver.quit()
 
     # Load model and scaler
     model = load_model(model_path, compile=False)
@@ -89,7 +94,7 @@ def btc_predict(human_prompt):
         current_price = pred_price
         days_pred_list.append(current_price)
 
-    # Build summary text
+    # Build summary
     summary = f"📈 BTC Price Prediction from {today} starting at ${todays_price:.2f}:\n\n"
     for i, pred in enumerate(days_pred_list):
         pred_date = today + timedelta(days=i + 1)

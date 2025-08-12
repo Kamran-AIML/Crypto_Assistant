@@ -43,39 +43,45 @@ from selenium.webdriver.common.by import By
 def btc_predict(human_prompt):
     """
     Predicts future Bitcoin prices using a trained LSTM model.
-    Scrapes current BTC price using headless Chromium via Selenium.
+    Scrapes current BTC price using headless Chrome via Selenium.
     """
-    print("... Running btc_predict -- (using headless Chromium)")
+    print("... Running btc_predict -- (using headless Chrome)")
 
     model_path = 'Trained_Model/btc_lstm_model.h5'
     scaler_path = 'Trained_Model/btc_scaler.save'
 
-    # Streamlit Cloud-compatible Selenium setup
+    # Chrome options for Streamlit Cloud
     options = Options()
-    options.add_argument("--headless")
+    options.add_argument("--headless=new")  # modern headless mode
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1920,1080")
+    options.binary_location = "/usr/bin/google-chrome"
 
-    service = Service()
+    service = Service("/usr/bin/chromedriver")
     driver = webdriver.Chrome(service=service, options=options)
 
-    driver.get("https://www.coingecko.com/en/coins/bitcoin")
-    driver.implicitly_wait(3)
+    try:
+        driver.get("https://www.coingecko.com/en/coins/bitcoin")
 
-    price_elem = WebDriverWait(driver, 30).until(
-        EC.visibility_of_element_located((
-            By.XPATH,
-            "//span[contains(@class, 'tw-font-bold') and " +
-            "contains(@class, 'tw-text-gray-900') and " +
-            "contains(@class, 'dark:tw-text-moon-50') and " +
-            "contains(@class, 'tw-text-3xl') and " +
-            "contains(@class, 'tw-leading-10')]"
-        ))
-    )
-    
-    price_text = price_elem.text
-    
-    driver.quit()
+        # Wait for price element
+        price_elem = WebDriverWait(driver, 30).until(
+            EC.visibility_of_element_located((
+                By.XPATH,
+                "//span[contains(@class, 'tw-font-bold') and " +
+                "contains(@class, 'tw-text-gray-900') and " +
+                "contains(@class, 'dark:tw-text-moon-50') and " +
+                "contains(@class, 'tw-text-3xl') and " +
+                "contains(@class, 'tw-leading-10')]"
+            ))
+        )
+
+        price_text = price_elem.text.strip()
+        print(f"Scraped BTC price text: {price_text}")
+    finally:
+        price_text = price_elem.text
+        driver.quit()
 
     # Extract numeric price
     todays_price = float(price_text.split('$')[1].replace(',', ''))

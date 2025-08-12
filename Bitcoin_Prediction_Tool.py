@@ -50,34 +50,26 @@ def btc_predict(human_prompt):
     model_path = 'Trained_Model/btc_lstm_model.h5'
     scaler_path = 'Trained_Model/btc_scaler.save'
 
-    # Headless Chrome setup for Streamlit Cloud
+    # Streamlit Cloud-compatible Selenium setup
     options = Options()
-    options.add_argument("--headless=new")  
+    options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1920,1080")
-    options.binary_location = "/usr/bin/google-chrome"  # Ensure this is correct in deployment
 
-    service = Service("/usr/bin/chromedriver")  # Path to ChromeDriver in Streamlit Cloud
+    service = Service()
     driver = webdriver.Chrome(service=service, options=options)
 
-    try:
-        driver.get("https://www.coingecko.com/en/coins/bitcoin")
+    driver.get("https://www.coingecko.com/en/coins/bitcoin")
+    driver.implicitly_wait(3)
 
-        # Wait for the price element with a flexible XPath
-        price_elem = WebDriverWait(driver, 20).until(
-            EC.presence_of_element_located((
-                By.XPATH,
-                "//span[contains(@class, 'tw-text-3xl') and contains(@class, 'tw-font-bold')]"
-            ))
-        )
+    price_text = driver.find_element(
+        By.XPATH,
+        '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 tw-text-3xl md:tw-text-4xl tw-leading-10"]'
+    ).text
+    driver.quit()
 
-        price_text = price_elem.text
-        todays_price = float(price_text.replace('$', '').replace(',', ''))
-
-    finally:
-        driver.quit()
+    # Extract numeric price
+    todays_price = float(price_text.split('$')[1].replace(',', ''))
 
     # Load model and scaler
     model = load_model(model_path, compile=False)
@@ -97,7 +89,7 @@ def btc_predict(human_prompt):
         current_price = pred_price
         days_pred_list.append(current_price)
 
-    # Build summary
+    # Build summary text
     summary = f"📈 BTC Price Prediction from {today} starting at ${todays_price:.2f}:\n\n"
     for i, pred in enumerate(days_pred_list):
         pred_date = today + timedelta(days=i + 1)

@@ -39,33 +39,31 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
+from selenium.webdriver.support.ui import WebDriverWait
+from selenium.webdriver.support import expected_conditions as EC
+import re
 
 def btc_predict(human_prompt):
-    """
-    Predicts future Bitcoin prices using a trained LSTM model.
-    Scrapes current BTC price using headless Chrome via Selenium.
-    """
-    print("... Running btc_predict -- (using headless Chrome)")
+    print("... Running btc_predict -- (headless Chrome)")
 
     model_path = 'Trained_Model/btc_lstm_model.h5'
     scaler_path = 'Trained_Model/btc_scaler.save'
 
-    # Chrome options for Streamlit Cloud
-    options = Options()
-    options.add_argument("--headless=new")  # modern headless mode
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
-    options.add_argument("--disable-gpu")
-    options.add_argument("--window-size=1920,1080")
-    options.binary_location = "/usr/bin/google-chrome"
+    # ✅ Chrome/Chromedriver setup for Streamlit Cloud
+    chrome_options = Options()
+    chrome_options.binary_location = "/usr/bin/google-chrome"
+    chrome_options.add_argument("--headless=new")
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.add_argument("--window-size=1920,1080")
 
     service = Service("/usr/bin/chromedriver")
-    driver = webdriver.Chrome(service=service, options=options)
+    driver = webdriver.Chrome(service=service, options=chrome_options)
 
     try:
         driver.get("https://www.coingecko.com/en/coins/bitcoin")
 
-        # Wait for price element
         price_elem = WebDriverWait(driver, 30).until(
             EC.visibility_of_element_located((
                 By.XPATH,
@@ -78,7 +76,8 @@ def btc_predict(human_prompt):
         )
 
         price_text = price_elem.text.strip()
-        print(f"Scraped BTC price text: {price_text}")
+        # todays_price = float(re.sub(r"[^\d.]", "", price_text))
+        
     finally:
         price_text = price_elem.text
         driver.quit()

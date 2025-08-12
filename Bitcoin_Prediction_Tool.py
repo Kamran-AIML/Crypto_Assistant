@@ -50,13 +50,16 @@ def btc_predict(human_prompt):
     model_path = 'Trained_Model/btc_lstm_model.h5'
     scaler_path = 'Trained_Model/btc_scaler.save'
 
-    # Streamlit Cloud-compatible Selenium setup
+    # Headless Chrome setup for Streamlit Cloud
     options = Options()
-    options.add_argument("--headless")
+    options.add_argument("--headless=new")  
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--disable-gpu")
+    options.add_argument("--window-size=1920,1080")
+    options.binary_location = "/usr/bin/google-chrome"  # Ensure this is correct in deployment
 
-    service = Service()
+    service = Service("/usr/bin/chromedriver")  # Path to ChromeDriver in Streamlit Cloud
     driver = webdriver.Chrome(service=service, options=options)
 
     try:

@@ -60,7 +60,7 @@ def btc_predict(human_prompt):
     driver = webdriver.Chrome(service=service, options=options)
 
     driver.get("https://www.coingecko.com/en/coins/bitcoin")
-    driver.implicitly_wait(3)
+    driver.implicitly_wait(6)
 
     price_text = driver.find_element(
         By.XPATH,

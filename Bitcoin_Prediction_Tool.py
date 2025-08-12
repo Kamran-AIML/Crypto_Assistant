@@ -39,48 +39,31 @@ from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
-from selenium.webdriver.support.ui import WebDriverWait
-from selenium.webdriver.support import expected_conditions as EC
-import re
 
 def btc_predict(human_prompt):
-    print("... Running btc_predict -- (headless Chrome)")
+    """
+    Predicts future Bitcoin prices using a trained LSTM model.
+    Scrapes current BTC price using headless Chromium via Selenium.
+    """
+    print("... Running btc_predict -- (using headless Chromium)")
 
     model_path = 'Trained_Model/btc_lstm_model.h5'
     scaler_path = 'Trained_Model/btc_scaler.save'
 
-    # ✅ Chrome/Chromedriver setup for Streamlit Cloud
-    chrome_options = Options()
-    chrome_options.binary_location = "/usr/bin/google-chrome"
-    chrome_options.add_argument("--headless=new")
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.add_argument("--window-size=1920,1080")
+    # Streamlit Cloud-compatible Selenium setup
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
 
-    service = Service("/usr/bin/chromedriver")
-    driver = webdriver.Chrome(service=service, options=chrome_options)
+    service = Service()
+    page_main = webdriver.Chrome(service=service, options=options)
 
-    try:
-        driver.get("https://www.coingecko.com/en/coins/bitcoin")
+    page_main.get("https://www.coingecko.com/en/coins/bitcoin")
+    page_main.implicitly_wait(3)
 
-        price_elem = WebDriverWait(driver, 30).until(
-            EC.visibility_of_element_located((
-                By.XPATH,
-                "//span[contains(@class, 'tw-font-bold') and " +
-                "contains(@class, 'tw-text-gray-900') and " +
-                "contains(@class, 'dark:tw-text-moon-50') and " +
-                "contains(@class, 'tw-text-3xl') and " +
-                "contains(@class, 'tw-leading-10')]"
-            ))
-        )
-
-        price_text = price_elem.text.strip()
-        # todays_price = float(re.sub(r"[^\d.]", "", price_text))
-        
-    finally:
-        price_text = price_elem.text
-        driver.quit()
+    price_text = page_main.find_element(By.XPATH, '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 tw-text-3xl md:tw-text-4xl tw-leading-10"]').text
+    driver.quit()
 
     # Extract numeric price
     todays_price = float(price_text.split('$')[1].replace(',', ''))

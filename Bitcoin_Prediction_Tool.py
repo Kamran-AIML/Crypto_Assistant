@@ -62,10 +62,19 @@ def btc_predict(human_prompt):
     driver.get("https://www.coingecko.com/en/coins/bitcoin")
     driver.implicitly_wait(3)
 
-    price_text = driver.find_element(
-        By.XPATH,
-        '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 tw-text-3xl md:tw-text-4xl tw-leading-10"]'
-    ).text
+    price_elem = WebDriverWait(driver, 30).until(
+        EC.visibility_of_element_located((
+            By.XPATH,
+            "//span[contains(@class, 'tw-font-bold') and " +
+            "contains(@class, 'tw-text-gray-900') and " +
+            "contains(@class, 'dark:tw-text-moon-50') and " +
+            "contains(@class, 'tw-text-3xl') and " +
+            "contains(@class, 'tw-leading-10')]"
+        ))
+    )
+    
+    price_text = price_elem.text
+    
     driver.quit()
 
     # Extract numeric price

@@ -33,8 +33,12 @@ from tensorflow.keras.models import load_model
 import joblib
 from datetime import datetime, date, time, timedelta
 
-
-
+#--------------------------------
+from selenium import webdriver
+from selenium.webdriver.firefox.service import Service
+from selenium.webdriver.firefox.options import Options
+from selenium.webdriver.common.by import By
+#--------------------------------
 
 def btc_predict(human_prompt):
 
@@ -50,25 +54,25 @@ def btc_predict(human_prompt):
     #-----------------------------
     ## SELENIUM_CODE
     
-    # Set the path to geckodriver
-    geckodriver_path = os.path.join(os.getcwd(), 'geckodriver.exe')  # or 'geckodriver' on Linux/Mac
+    # Point to the local geckodriver.exe
+    geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
     
     service = Service(executable_path=geckodriver_path)
     options = Options()
-    options.add_argument("--headless")  # Run Firefox in headless mode
+    options.add_argument("--headless")  # For Streamlit, headless is required
     
+    # Launch browser
     driver = webdriver.Firefox(service=service, options=options)
     driver.get("https://www.coingecko.com/en/coins/bitcoin")
     
-    # Now you can interact with the page
-    price_element = driver.find_element(
+    # Example: get price
+    price = driver.find_element(
         By.XPATH,
         '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 tw-text-3xl md:tw-text-4xl tw-leading-10"]'
-    )
-    todays_price = price_element.text
-    print("Today's BTC price is:", todays_price)
+    ).text
     
     driver.quit()
+    print("BTC Price:", price)
         
         
     todays_price = page_main.find_element(By.XPATH, '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 tw-text-3xl md:tw-text-4xl tw-leading-10"]').text

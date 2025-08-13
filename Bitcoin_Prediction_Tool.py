@@ -60,7 +60,7 @@ def btc_predict(human_prompt):
     model_path = 'Trained_Model/btc_lstm_model.h5'
     scaler_path = 'Trained_Model/btc_scaler.save'
 
-    #----------------------------- 
+    #-----------------------------
     
     url = "https://api.coingecko.com/api/v3/simple/price"
     params = {

@@ -51,19 +51,30 @@ def btc_predict(human_prompt):
     scaler_path = 'Trained_Model/btc_scaler.save'
 
     # Streamlit Cloud-compatible Selenium setup
+    # ✅ Cross-platform Selenium setup
     options = Options()
     options.add_argument("--headless")
     options.add_argument("--no-sandbox")
     options.add_argument("--disable-dev-shm-usage")
 
-    service = Service()
+    if os.path.exists("/usr/bin/chromium-browser"):  # Streamlit Cloud
+        options.binary_location = "/usr/bin/chromium-browser"
+        service = Service("/usr/bin/chromedriver")
+    else:  # Local machine
+        service = Service()  # Uses local chromedriver in PATH
+
     page_main = webdriver.Chrome(service=service, options=options)
 
     page_main.get("https://www.coingecko.com/en/coins/bitcoin")
     page_main.implicitly_wait(3)
 
-    price_text = page_main.find_element(By.XPATH, '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 tw-text-3xl md:tw-text-4xl tw-leading-10"]').text
-    driver.quit()
+    price_text = page_main.find_element(
+        By.XPATH,
+        '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 '
+        'tw-text-3xl md:tw-text-4xl tw-leading-10"]'
+    ).text
+    page_main.quit()
+#------------------------------------------------------------------
 
     # Extract numeric price
     todays_price = float(price_text.split('$')[1].replace(',', ''))

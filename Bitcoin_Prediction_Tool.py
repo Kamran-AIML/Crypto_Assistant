@@ -53,25 +53,20 @@ def btc_predict(human_prompt):
     scaler_path = 'Trained_Model/btc_scaler.save'
 
     #-----------------------------
-    ## SELENIUM_CODE
-    
-    # Point to the local geckodriver.exe
-    geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')
-    
+       geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')  # Adjust for your actual executable
     service = Service(executable_path=geckodriver_path)
+
     options = Options()
-    options.add_argument("--headless")  # For Streamlit, headless is required
-    
-    # Launch browser
+    options.add_argument("--headless")
+
     driver = webdriver.Firefox(service=service, options=options)
     driver.get("https://www.coingecko.com/en/coins/bitcoin")
-    
-    # Example: get price
+
     price = driver.find_element(
         By.XPATH,
         '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 tw-text-3xl md:tw-text-4xl tw-leading-10"]'
     ).text
-    
+
     driver.quit()
     print("BTC Price:", price)
         

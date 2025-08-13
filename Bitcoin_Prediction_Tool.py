@@ -34,12 +34,57 @@ def get_chrome_driver():
 def get_btc_price():
     driver = get_chrome_driver()
     driver.get("https://www.coingecko.com/en/coins/bitcoin")
-    price = driver.find_element(
+    todays_price = driver.find_element(
         "xpath",
         '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 tw-text-3xl md:tw-text-4xl tw-leading-10"]'
     ).text
     driver.quit()
     return price
 
-if __name__ == "__main__":
-    print("Current BTC Price:", get_btc_price())
+    todays_price = todays_price.split('$')[1].replace(',','')
+    
+    #-----------------------------
+
+    start_price = float(todays_price)
+    # days = int(input("Enter Prediction for how many days from today (eg:-3) : "))
+
+    days = 10
+
+    # Today's date
+    today = date.today()
+    # print(f"Today's date: {today}")
+    
+    
+    
+
+    # Load model without compiling
+    model = load_model(model_path, compile=False)
+    scaler = joblib.load(scaler_path)
+
+    current_price = np.array([[start_price]])  # 2D input
+
+    days_pred_list = []
+    print(f"\n📈 Predicting next {days} days of BTC opening prices...\n")
+    for i in range(days):
+        scaled_input = scaler.transform(current_price)
+        model_input = scaled_input.reshape(1, 1, 1)
+        pred_scaled = model.predict(model_input, verbose=0)
+        pred_price = scaler.inverse_transform(pred_scaled)
+        print(f"Day {i+1}: {pred_price[0][0]:.2f} USD")
+        current_price = pred_price
+        days_pred_list.append(current_price)
+
+    # ✅ Correct formatting for return
+    result = f"📈 BTC Price Prediction starting from {today} using price ${start_price:.2f}:\n\n"
+    for i, pred in enumerate(days_pred_list):
+        pred_date = today + timedelta(days=i + 1)
+        result += f"{pred_date}: ${pred[0][0]:.2f} USD\n"
+
+    # return result.strip()
+
+        # Return both result and today's price (can be used by LLM)
+    return {
+        "summary": result.strip(),
+        "todays_bitcoin_price": f"📈 Today's - ({today}) BTC price is ${start_price:.2f} USD"
+    }
+    

@@ -40,6 +40,30 @@ from selenium.webdriver.chrome.service import Service
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 
+
+
+
+def get_chrome_driver():
+    options = Options()
+    options.add_argument("--headless")
+    options.add_argument("--no-sandbox")
+    options.add_argument("--disable-dev-shm-usage")
+
+    # Detect environment and set binary path
+    if os.path.exists("/usr/bin/chromium-browser"):
+        options.binary_location = "/usr/bin/chromium-browser"
+        service = Service("/usr/bin/chromedriver")
+    elif os.path.exists("/usr/bin/chromium"):
+        options.binary_location = "/usr/bin/chromium"
+        service = Service("/usr/bin/chromedriver")
+    else:
+        service = Service()  # Local machine, chromedriver in PATH
+
+    return webdriver.Chrome(service=service, options=options)
+
+
+
+
 def btc_predict(human_prompt):
     """
     Predicts future Bitcoin prices using a trained LSTM model.
@@ -50,30 +74,17 @@ def btc_predict(human_prompt):
     model_path = 'Trained_Model/btc_lstm_model.h5'
     scaler_path = 'Trained_Model/btc_scaler.save'
 
-    # Streamlit Cloud-compatible Selenium setup
-    # ✅ Cross-platform Selenium setup
-    options = Options()
-    options.add_argument("--headless")
-    options.add_argument("--no-sandbox")
-    options.add_argument("--disable-dev-shm-usage")
 
-    if os.path.exists("/usr/bin/chromium-browser"):  # Streamlit Cloud
-        options.binary_location = "/usr/bin/chromium-browser"
-        service = Service("/usr/bin/chromedriver")
-    else:  # Local machine
-        service = Service()  # Uses local chromedriver in PATH
+    driver = get_chrome_driver()
+    driver.get("https://www.coingecko.com/en/coins/bitcoin")
+    driver.implicitly_wait(3)
 
-    page_main = webdriver.Chrome(service=service, options=options)
-
-    page_main.get("https://www.coingecko.com/en/coins/bitcoin")
-    page_main.implicitly_wait(3)
-
-    price_text = page_main.find_element(
+    price_text = driver.find_element(
         By.XPATH,
         '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 '
         'tw-text-3xl md:tw-text-4xl tw-leading-10"]'
     ).text
-    page_main.quit()
+    driver.quit()
 #------------------------------------------------------------------
 
     # Extract numeric price

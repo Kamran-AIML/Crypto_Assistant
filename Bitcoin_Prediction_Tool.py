@@ -50,32 +50,31 @@ def btc_predict(human_prompt):
     #-----------------------------
     ## SELENIUM_CODE
     
-    # Path to geckodriver (you already set fname)
-    fname = os.path.join(os.getcwd(), 'geckodriver.exe')
-    # print("Driver path:", fname)
+    # Set the path to geckodriver
+    geckodriver_path = os.path.join(os.getcwd(), 'geckodriver.exe')  # or 'geckodriver' on Linux/Mac
     
-    # Create Service with driver path
-    service = Service(executable_path=fname)
-    ## (Optional) configure browser options
+    service = Service(executable_path=geckodriver_path)
     options = Options()
-    # Set Firefox options for headless mode
-    options.add_argument("--headless")  # ✅ key line for headless
+    options.add_argument("--headless")  # Run Firefox in headless mode
     
-    # Correct way to initialize
-    page_main = webdriver.Firefox(service=service, options=options)
-    # page_main = webdriver.Chrome(options=options)
+    driver = webdriver.Firefox(service=service, options=options)
+    driver.get("https://www.coingecko.com/en/coins/bitcoin")
     
-    # Now you can proceed
-    page_main.maximize_window()
-    page_main.get("https://www.coingecko.com/en/coins/bitcoin")
-    # print('Site Opened')
-    page_main.implicitly_wait(3)
+    # Now you can interact with the page
+    price_element = driver.find_element(
+        By.XPATH,
+        '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 tw-text-3xl md:tw-text-4xl tw-leading-10"]'
+    )
+    todays_price = price_element.text
+    print("Today's BTC price is:", todays_price)
     
-    
+    driver.quit()
+        
+        
     todays_price = page_main.find_element(By.XPATH, '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 tw-text-3xl md:tw-text-4xl tw-leading-10"]').text
     todays_price = todays_price.split('$')[1].replace(',','')
     
-    page_main.close()
+    # page_main.close()
 
     #-----------------------------
 

@@ -44,6 +44,10 @@ import joblib
 import numpy as np
 from datetime import date, timedelta
 
+import requests
+
+
+
 def btc_predict(human_prompt):
     """ 
     This tool is used for predicting Bitcoin (BTC) prices. 
@@ -56,28 +60,23 @@ def btc_predict(human_prompt):
     scaler_path = 'Trained_Model/btc_scaler.save'
 
     #-----------------------------
-    # SELENIUM CODE (Chromium for Streamlit Cloud)
-    chrome_options = Options()
-    chrome_options.add_argument("--headless=new")     # headless mode
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.add_argument("--disable-gpu")
-    chrome_options.binary_location = "/usr/bin/chromium"  # Location in Streamlit Cloud
+    
+    url = "https://api.coingecko.com/api/v3/simple/price"
+    params = {
+        "ids": "bitcoin",
+        "vs_currencies": "usd"
+    }
+    r = requests.get(url, params=params)
+    if r.status_code == 200:
+        data = r.json()
+        todays_price = data["bitcoin"]["usd"]
+    else:
+        raise Exception("API request failed")
+    
+    print(todays_price)
 
-    service = Service("/usr/lib/chromium/chromedriver")   # Driver path in Streamlit Cloud
-    driver = webdriver.Chrome(service=service, options=chrome_options)
 
-    driver.get("https://www.coingecko.com/en/coins/bitcoin")
-    time.sleep(2)  # give some time to load
-
-    todays_price = driver.find_element(
-        By.XPATH,
-        '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 '
-        'tw-text-3xl md:tw-text-4xl tw-leading-10"]'
-    ).text
-    driver.quit()
-
-    todays_price = todays_price.split('$')[1].replace(',', '')
+    # todays_price = todays_price.split('$')[1].replace(',', '')
     #-----------------------------
 
     start_price = float(todays_price)

@@ -44,48 +44,53 @@ import joblib
 import numpy as np
 from datetime import date, timedelta
 
-def get_chrome_driver():
-    chrome_options = Options()
-    chrome_options.add_argument("--headless=new")  # Use new headless mode argument
-    chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    chrome_options.binary_location = "/usr/bin/chromium"
-    driver_path = "/usr/lib/chromium/chromedriver"
-    service = Service(driver_path)
-    return webdriver.Chrome(service=service, options=chrome_options)
+def btc_predict(human_prompt):
+    """ 
+    This tool is used for predicting Bitcoin (BTC) prices. 
+    It uses a trained LSTM model for prediction.
+    """
 
-def get_btc_price():
-    driver = get_chrome_driver()
-    driver.get("https://www.coingecko.com/en/coins/bitcoin")
-    
-    # Optionally wait for element visibility if needed
-    
-    todays_price = driver.find_element(
-        By.XPATH,
-        '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 tw-text-3xl md:tw-text-4xl tw-leading-10"]'
-    ).text
-    
-    driver.quit()
-    
-    # Clean price string "$" and comma
-    price_clean = todays_price.split('$')[1].replace(',', '')
-    return float(price_clean)
-
-def btc_predict():
     print("... Running btc_predict--")
+
     model_path = 'Trained_Model/btc_lstm_model.h5'
     scaler_path = 'Trained_Model/btc_scaler.save'
-    
-    start_price = get_btc_price()
+
+    #-----------------------------
+    # SELENIUM CODE (Chromium for Streamlit Cloud)
+    chrome_options = Options()
+    chrome_options.add_argument("--headless=new")     # headless mode
+    chrome_options.add_argument("--no-sandbox")
+    chrome_options.add_argument("--disable-dev-shm-usage")
+    chrome_options.add_argument("--disable-gpu")
+    chrome_options.binary_location = "/usr/bin/chromium"  # Location in Streamlit Cloud
+
+    service = Service("/usr/lib/chromium/chromedriver")   # Driver path in Streamlit Cloud
+    driver = webdriver.Chrome(service=service, options=chrome_options)
+
+    driver.get("https://www.coingecko.com/en/coins/bitcoin")
+    time.sleep(2)  # give some time to load
+
+    todays_price = driver.find_element(
+        By.XPATH,
+        '//*[@class="tw-font-bold tw-text-gray-900 dark:tw-text-moon-50 '
+        'tw-text-3xl md:tw-text-4xl tw-leading-10"]'
+    ).text
+    driver.quit()
+
+    todays_price = todays_price.split('$')[1].replace(',', '')
+    #-----------------------------
+
+    start_price = float(todays_price)
     days = 10
     today = date.today()
-    
+
+    # Load model and scaler
     model = load_model(model_path, compile=False)
     scaler = joblib.load(scaler_path)
-    
-    current_price = np.array([[start_price]])
+
+    current_price = np.array([[start_price]])  # 2D input
     days_pred_list = []
-    
+
     print(f"\n📈 Predicting next {days} days of BTC opening prices...\n")
     for i in range(days):
         scaled_input = scaler.transform(current_price)
@@ -95,14 +100,14 @@ def btc_predict():
         print(f"Day {i+1}: {pred_price[0][0]:.2f} USD")
         current_price = pred_price
         days_pred_list.append(current_price)
-        
+
+    # ✅ formatted return
     result = f"📈 BTC Price Prediction starting from {today} using price ${start_price:.2f}:\n\n"
     for i, pred in enumerate(days_pred_list):
         pred_date = today + timedelta(days=i + 1)
         result += f"{pred_date}: ${pred[0][0]:.2f} USD\n"
-        
+
     return {
         "summary": result.strip(),
         "todays_bitcoin_price": f"📈 Today's - ({today}) BTC price is ${start_price:.2f} USD"
     }
-

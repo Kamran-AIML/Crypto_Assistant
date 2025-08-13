@@ -53,7 +53,7 @@ def btc_predict(human_prompt):
     scaler_path = 'Trained_Model/btc_scaler.save'
 
     #-----------------------------
-       geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')  # Adjust for your actual executable
+    geckodriver_path = os.path.join(os.path.dirname(__file__), 'geckodriver.exe')  # Adjust for your actual executable
     service = Service(executable_path=geckodriver_path)
 
     options = Options()
